@@ -112,7 +112,7 @@ export function VoiceOrb() {
       case "speaking":
         return "Speaking...";
       case "error":
-        return "Error occurred";
+        return "Using demo mode";
       default:
         return null;
     }
@@ -179,7 +179,8 @@ export function VoiceOrb() {
         transition={{ delay: 0.3 }}
       >
         {!ready ? "AI is loading..." :
-         orbState === "idle" ? "Click the orb and start talking" :
+         orbState === "idle" ? "Click the orb and start talking (Demo mode active)" :
+         orbState === "listening" ? "Listening... (Demo will auto-complete)" :
          "I'm available 24/7 for you, ask me anything."}
       </motion.p>
 
