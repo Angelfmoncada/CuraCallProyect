@@ -20,23 +20,29 @@ export function VoiceOrb() {
       setOrbState("idle");
     } else {
       setOrbState("listening");
-      const text = await startListening();
-      
-      if (text) {
-        setOrbState("processing");
+      try {
+        const text = await startListening();
         
-        try {
-          const response = await chat([{ role: "user", content: text }]);
-          setOrbState("speaking");
-          await speak(response);
+        if (text) {
+          setOrbState("processing");
+          
+          try {
+            const response = await chat([{ role: "user", content: text }]);
+            setOrbState("speaking");
+            await speak(response);
+            setOrbState("idle");
+          } catch (error) {
+            console.error("Voice chat error:", error);
+            setOrbState("error");
+            setTimeout(() => setOrbState("idle"), 2000);
+          }
+        } else {
           setOrbState("idle");
-        } catch (error) {
-          console.error("Voice chat error:", error);
-          setOrbState("error");
-          setTimeout(() => setOrbState("idle"), 2000);
         }
-      } else {
-        setOrbState("idle");
+      } catch (error) {
+        console.error("Speech recognition error:", error);
+        setOrbState("error");
+        setTimeout(() => setOrbState("idle"), 3000);
       }
     }
   };
@@ -172,7 +178,9 @@ export function VoiceOrb() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        I'm available 24/7 for you, ask me anything.
+        {!ready ? "AI is loading..." :
+         orbState === "idle" ? "Click the orb and start talking" :
+         "I'm available 24/7 for you, ask me anything."}
       </motion.p>
 
       {/* Voice Status */}

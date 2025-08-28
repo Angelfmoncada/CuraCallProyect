@@ -25,10 +25,17 @@ export default function Dashboard() {
     setLocation('/chat');
   };
 
-  const handleQuickAction = (prompt: string) => {
+  const handleQuickAction = async (prompt: string) => {
     if (mode === "voice") {
-      // For voice mode, this would trigger voice processing
-      console.log("Voice query:", prompt);
+      // For voice mode, trigger speech synthesis to read the question
+      try {
+        const synth = window.speechSynthesis;
+        const utterance = new SpeechSynthesisUtterance(prompt);
+        synth.speak(utterance);
+        console.log("Voice query:", prompt);
+      } catch (error) {
+        console.error("Speech synthesis error:", error);
+      }
     } else {
       handleChatMessage(prompt);
     }
