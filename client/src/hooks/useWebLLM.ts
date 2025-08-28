@@ -30,6 +30,7 @@ export function useWebLLM() {
     if (typeof navigator === 'undefined') return false;
     
     try {
+      // @ts-ignore - WebGPU might not be available in all browsers
       const adapter = await navigator.gpu?.requestAdapter();
       return !!adapter;
     } catch {

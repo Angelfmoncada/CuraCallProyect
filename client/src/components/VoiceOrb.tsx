@@ -13,21 +13,31 @@ export function VoiceOrb() {
   const { chat, ready } = useWebLLM();
 
   const handleOrbClick = async () => {
-    if (!ready) return;
+    console.log('Orb clicked, ready:', ready, 'isListening:', isListening);
+    
+    if (!ready) {
+      console.log('AI not ready yet');
+      return;
+    }
 
     if (isListening) {
+      console.log('Stopping listening...');
       stopListening();
       setOrbState("idle");
     } else {
+      console.log('Starting voice interaction...');
       setOrbState("listening");
+      
       try {
         const text = await startListening();
+        console.log('Got voice text:', text);
         
         if (text) {
           setOrbState("processing");
           
           try {
             const response = await chat([{ role: "user", content: text }]);
+            console.log('Got AI response:', response);
             setOrbState("speaking");
             await speak(response);
             setOrbState("idle");
