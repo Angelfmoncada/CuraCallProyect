@@ -1,0 +1,70 @@
+Crea una app Next.js 14 (App Router, TypeScript) llamada CuraCall. Diseño minimalista oscuro, vidrio suave, como la screenshot enviada. Debe tener dos modos: Voice y Chat.
+IA 100% gratuita, sin API keys usando @mlc-ai/web-llm (WebLLM) en el navegador (WebGPU). Si no hay WebGPU, muestra aviso y ofrece “modo básico” que resume resultados de Wikipedia REST (gratuito) como RAG liviano. No uses servicios de pago.
+
+Stack
+
+React, Node.js, Next.js 14, TypeScript.
+
+TailwindCSS + shadcn/ui (Button, Card, Input, Tabs, Dialog, ScrollArea, Avatar).
+
+lucide-react, framer-motion (animaciones suaves).
+
+Paletas & tema
+
+Implementa dos temas con variables OKLCH: Ocean Breeze y Seagrass (usa las variables que ya te pasé). Switch de tema en el sidebar.
+
+Estructura
+
+app/(dashboard)/page.tsx        // landing con orbe, chips y barra
+app/chat/page.tsx               // pantalla chat
+components/ModeToggle.tsx
+components/VoiceOrb.tsx
+components/chat/{MessageList,InputBar}.tsx
+hooks/useSpeech.ts              // Web Speech API (STT/TTS)
+hooks/useWebLLM.ts              // interfaz de IA gratis
+lib/wiki.ts                     // fetch y resumen de Wikipedia
+store/history.ts                // localStorage (con archivar/eliminar)
+styles/globals.css              // tailwind + temas OKLCH
+
+
+useWebLLM.ts (requisitos)
+
+Cargar modelo: Llama-3-8B-Instruct-q4f32_1-MLC o Qwen2.5-3B-Instruct (el que WebLLM soporte rápidamente).
+
+API estilo OpenAI: chat(messages, {stream:true}) devolviendo chunks.
+
+Exponer: ready, loadProgress, chat, abort.
+
+Modo Voice
+
+useSpeech: start/stop (STT) y speak(text) (TTS).
+
+Botón orbe: pulso cuando escucha. Al finalizar, envía el texto a useWebLLM.chat y reproduce la respuesta con TTS.
+
+Modo Chat
+
+Input con botón Send y mic pasivo.
+
+Mensajes con acciones Archive y Delete (estado local + persistencia en localStorage).
+
+Chips rápidos debajo del input.
+
+Historial & Settings
+
+Historial básico (listar, archivar, borrar).
+
+Dialog “Settings”: tema, voz TTS, velocidad y autoplay.
+
+Pruebas mínimas
+
+Render de ModeToggle cambia clase de tema.
+
+useWebLLM expone ready y genera al menos 1 token (mock si WebGPU no).
+
+useSpeech retorna texto simulado en tests.
+
+Entrega
+
+Scripts: dev, build, start, ui:add.
+
+No pedir claves. Todo debe funcionar gratis (WebLLM + Wikipedia).
