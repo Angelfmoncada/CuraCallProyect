@@ -1,13 +1,25 @@
 import { motion } from "framer-motion";
 import { useSettings } from "@/store/settings";
+import { useTheme } from "@/components/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
+import { Waves, Leaf, Sunset, Moon } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const themes = [
+  { id: "dark-ocean" as const, name: "Dark Ocean", icon: Waves, gradient: "from-slate-900 to-blue-900" },
+  { id: "ocean-breeze" as const, name: "Ocean Breeze", icon: Waves, gradient: "from-sky-600 to-blue-600" },
+  { id: "seagrass" as const, name: "Seagrass", icon: Leaf, gradient: "from-emerald-600 to-green-600" },
+  { id: "sunset" as const, name: "Sunset", icon: Sunset, gradient: "from-orange-600 to-pink-600" },
+  { id: "midnight" as const, name: "Midnight", icon: Moon, gradient: "from-purple-900 to-purple-600" },
+];
 
 export default function Settings() {
   const { settings, updateSettings, clearAllData } = useSettings();
+  const { theme, setTheme } = useTheme();
   const { toast } = useToast();
 
   const handleVoiceSpeedChange = (value: number[]) => {
@@ -33,10 +45,40 @@ export default function Settings() {
       </motion.h1>
       
       <div className="space-y-6">
+        {/* Themes */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass rounded-2xl p-6"
+        >
+          <h3 className="font-medium mb-4">Themes</h3>
+          <div className="space-y-3">
+            {themes.map((themeOption) => {
+              const Icon = themeOption.icon;
+              return (
+                <Button
+                  key={themeOption.id}
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-3 p-3 rounded-lg hover:bg-white/10 transition-colors",
+                    theme === themeOption.id && "bg-white/10"
+                  )}
+                  onClick={() => setTheme(themeOption.id)}
+                  data-testid={`button-theme-${themeOption.id}`}
+                >
+                  <div className={cn("w-4 h-4 rounded-full bg-gradient-to-r", themeOption.gradient)} />
+                  <span>{themeOption.name}</span>
+                </Button>
+              );
+            })}
+          </div>
+        </motion.div>
+
         {/* Voice Settings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="glass rounded-2xl p-6"
         >
           <h3 className="font-medium mb-4">Voice Settings</h3>
@@ -72,7 +114,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="glass rounded-2xl p-6"
         >
           <h3 className="font-medium mb-4">AI Settings</h3>
@@ -115,7 +157,7 @@ export default function Settings() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.3 }}
           className="glass rounded-2xl p-6"
         >
           <h3 className="font-medium mb-4">Privacy</h3>
