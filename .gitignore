@@ -88,6 +88,7 @@ storybook-static
 # Temporary folders
 tmp/
 temp/
+tmp.txt
 
 # Runtime data
 pids
