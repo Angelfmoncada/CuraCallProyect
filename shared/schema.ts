@@ -18,7 +18,7 @@ export const settings = pgTable("settings", {
   voiceSpeed: text("voice_speed").notNull().default("1"),
   autoPlay: boolean("auto_play").notNull().default(true),
   saveConversations: boolean("save_conversations").notNull().default(true),
-  aiModel: text("ai_model").notNull().default("Llama-3-8B-Instruct"),
+  aiModel: text("ai_model").notNull().default("llama3.1:8b"),
   responseLength: text("response_length").notNull().default("balanced"),
 });
 

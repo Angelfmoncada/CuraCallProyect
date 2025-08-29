@@ -1,213 +1,231 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square } from "lucide-react";
-import { useSpeech } from "@/hooks/useSpeech";
-import { useWebLLM } from "@/hooks/useWebLLM";
+import { motion } from "framer-motion";
+import { Mic, Volume2, MessageCircle, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type OrbState = "idle" | "listening" | "processing" | "speaking" | "error";
+interface VoiceOrbProps {
+  listening?: boolean;
+  speaking?: boolean;
+  thinking?: boolean;
+}
 
-export function VoiceOrb() {
-  const [orbState, setOrbState] = useState<OrbState>("idle");
-  const { startListening, stopListening, speak, isListening } = useSpeech();
-  const { chat, ready } = useWebLLM();
-
-  const handleOrbClick = async () => {
-    console.log('Orb clicked, ready:', ready, 'isListening:', isListening);
-    
-    if (!ready) {
-      console.log('AI not ready yet');
-      return;
-    }
-
-    if (isListening) {
-      console.log('Stopping listening...');
-      stopListening();
-      setOrbState("idle");
-    } else {
-      console.log('Starting voice interaction...');
-      setOrbState("listening");
-      
-      try {
-        const text = await startListening();
-        console.log('Got voice text:', text);
-        
-        if (text) {
-          setOrbState("processing");
-          
-          try {
-            const response = await chat([{ role: "user", content: text }]);
-            console.log('Got AI response:', response);
-            setOrbState("speaking");
-            await speak(response);
-            setOrbState("idle");
-          } catch (error) {
-            console.error("Voice chat error:", error);
-            setOrbState("error");
-            setTimeout(() => setOrbState("idle"), 2000);
-          }
-        } else {
-          setOrbState("idle");
-        }
-      } catch (error) {
-        console.error("Speech recognition error:", error);
-        setOrbState("error");
-        setTimeout(() => setOrbState("idle"), 3000);
-      }
-    }
-  };
-
+export function VoiceOrb({ listening = false, speaking = false, thinking = false }: VoiceOrbProps) {
   const getOrbContent = () => {
-    switch (orbState) {
-      case "listening":
-        return <Square className="w-12 h-12 text-primary" />;
-      case "processing":
-        return (
+    if (listening) {
+      return (
+        <>
+          {/* Base orb with enhanced listening gradient */}
           <motion.div
-            className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          />
-        );
-      case "speaking":
-        return (
-          <motion.div
-            className="flex gap-1"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            {[0, 1, 2].map((i) => (
-              <motion.div
-                key={i}
-                className="w-2 h-8 bg-primary rounded-full"
-                animate={{
-                  scaleY: [1, 2, 1],
-                }}
-                transition={{
-                  duration: 0.5,
-                  repeat: Infinity,
-                  delay: i * 0.1,
-                }}
-              />
-            ))}
-          </motion.div>
-        );
-      case "error":
-        return (
-          <motion.div
-            animate={{ x: [-2, 2, -2, 2, 0] }}
-            transition={{ duration: 0.5 }}
-          >
-            <Mic className="w-12 h-12 text-destructive" />
-          </motion.div>
-        );
-      default:
-        return <Mic className="w-12 h-12 text-primary" />;
-    }
-  };
-
-  const getStatusText = () => {
-    switch (orbState) {
-      case "listening":
-        return (
-          <div className="typing-indicator">
-            <span>Listening</span>
-            <div className="typing-dot" />
-            <div className="typing-dot" />
-            <div className="typing-dot" />
-          </div>
-        );
-      case "processing":
-        return "Processing...";
-      case "speaking":
-        return "Speaking...";
-      case "error":
-        return "Using demo mode";
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="text-center mb-16" data-testid="voice-orb-container">
-      <div className="relative inline-block mb-8">
-        <motion.div
-          className={cn(
-            "relative w-32 h-32 mx-auto glass rounded-full flex items-center justify-center cursor-pointer transition-all duration-300",
-            ready ? "hover:scale-105" : "opacity-50 cursor-not-allowed",
-            orbState === "listening" && "orb-ripple",
-            orbState === "idle" && "animate-breathing"
-          )}
-          whileTap={ready ? { scale: 0.95 } : {}}
-          onClick={handleOrbClick}
-          data-testid="voice-orb"
-        >
-          {getOrbContent()}
-          
-          {/* Pulsing background */}
-          <motion.div
-            className="absolute inset-0 rounded-full bg-primary/20"
+            className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 via-blue-500 to-purple-600"
             animate={{
-              scale: orbState === "listening" ? [1, 1.1, 1] : 1,
-              opacity: orbState === "listening" ? [0.2, 0.4, 0.2] : 0.2,
+              scale: [1, 1.05, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          {/* Enhanced ripple effects */}
+          <motion.div
+            className="absolute inset-0 rounded-full border-2 border-blue-400/60"
+            animate={{
+              scale: [1, 1.4],
+              opacity: [0.6, 0]
             }}
             transition={{
               duration: 1.5,
-              repeat: orbState === "listening" ? Infinity : 0,
+              repeat: Infinity,
+              ease: "easeOut"
             }}
           />
-        </motion.div>
+          <motion.div
+            className="absolute inset-0 rounded-full border-2 border-purple-400/60"
+            animate={{
+              scale: [1, 1.4],
+              opacity: [0.6, 0]
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeOut",
+              delay: 0.5
+            }}
+          />
+          
+          <div className="relative z-10 flex items-center justify-center h-full">
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              <Mic className="w-12 h-12 text-white drop-shadow-lg" />
+            </motion.div>
+          </div>
+        </>
+      );
+    }
+
+    if (speaking) {
+      return (
+        <>
+          {/* Enhanced speaking orb with dynamic glow */}
+          <motion.div
+            className="absolute inset-0 rounded-full bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600"
+            animate={{
+              scale: [1, 1.08, 1.02, 1],
+              boxShadow: [
+                "0 0 20px rgba(34, 197, 94, 0.4)",
+                "0 0 40px rgba(34, 197, 94, 0.6)",
+                "0 0 20px rgba(34, 197, 94, 0.4)"
+              ]
+            }}
+            transition={{
+              duration: 0.8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          <div className="relative z-10 flex items-center justify-center h-full">
+            <motion.div
+              animate={{ 
+                scale: [1, 1.15, 1],
+                rotate: [0, 2, -2, 0]
+              }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+            >
+              <Volume2 className="w-12 h-12 text-white drop-shadow-lg" />
+            </motion.div>
+          </div>
+        </>
+      );
+    }
+
+    if (thinking) {
+      return (
+        <>
+          {/* Enhanced thinking orb with pulsing effect */}
+          <motion.div
+            className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-red-500"
+            animate={{
+              scale: [1, 1.03, 1],
+              opacity: [0.9, 1, 0.9]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          {/* Thinking particles effect */}
+          <motion.div
+            className="absolute -inset-3 rounded-full bg-gradient-to-br from-amber-300/20 to-orange-400/20"
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.3, 0.6, 0.3]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+          
+          <div className="relative z-10 flex items-center justify-center h-full">
+            <motion.div
+              animate={{ 
+                rotate: [0, 360],
+                scale: [1, 1.05, 1]
+              }}
+              transition={{ 
+                rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+                scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+              }}
+            >
+              <Brain className="w-12 h-12 text-white drop-shadow-lg" />
+            </motion.div>
+          </div>
+        </>
+      );
+    }
+
+    // Enhanced idle state
+    return (
+      <>
+        <motion.div
+          className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/90 via-primary/70 to-accent/80"
+          whileHover={{ 
+            scale: 1.05,
+            boxShadow: "0 0 30px rgba(var(--primary), 0.4)"
+          }}
+          whileTap={{ scale: 0.95 }}
+          animate={{
+            scale: [1, 1.02, 1],
+            opacity: [0.9, 1, 0.9]
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
         
-        {/* Glow effect */}
+        {/* Idle glow effect */}
+        <motion.div
+          className="absolute -inset-2 rounded-full bg-gradient-to-br from-primary/20 to-accent/20"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.2, 0.4, 0.2]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <MessageCircle className="w-12 h-12 text-white drop-shadow-lg" />
+          </motion.div>
+        </div>
+      </>
+    );
+  };
+
+  return (
+    <div className="relative inline-block" data-testid="voice-orb-container">
+      
+      <motion.div
+        className={cn(
+          "relative w-32 h-32 mx-auto glass rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-105",
+          "animate-float", // Base gentle float animation
+          speaking && "animate-talk scale-105", // Strong glow when speaking
+          thinking && "animate-pulse", // Soft pulse when thinking
+        )}
+        whileTap={{ scale: 0.95 }}
+        data-testid="voice-orb"
+      >
+        {getOrbContent()}
+        
+        {/* Base glow effect */}
         <div className="absolute -inset-4">
           <div className="w-full h-full rounded-full bg-gradient-to-r from-primary via-accent to-primary opacity-20 animate-glow blur-md" />
         </div>
-      </div>
-      
-      <motion.h1
-        className="text-4xl font-light mb-4"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
-        Good to See You!
-      </motion.h1>
-      
-      <motion.p
-        className="text-xl text-muted-foreground mb-8"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        How Can I be an Assistance?
-      </motion.p>
-      
-      <motion.p
-        className="text-sm text-muted-foreground mb-6"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3 }}
-      >
-        {!ready ? "AI is loading..." :
-         orbState === "idle" ? "Click the orb and start talking (Demo mode active)" :
-         orbState === "listening" ? "Listening... (Demo will auto-complete)" :
-         "I'm available 24/7 for you, ask me anything."}
-      </motion.p>
-
-      {/* Voice Status */}
-      <AnimatePresence>
-        {orbState !== "idle" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-sm text-muted-foreground"
-            data-testid="voice-status"
-          >
-            {getStatusText()}
-          </motion.div>
+        
+        {/* Ripple effects when listening */}
+        {listening && (
+          <>
+            <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ripple" />
+            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ripple" style={{ animationDelay: '0.6s' }} />
+          </>
         )}
-      </AnimatePresence>
+      </motion.div>
     </div>
   );
 }

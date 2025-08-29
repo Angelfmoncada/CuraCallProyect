@@ -1,24 +1,3 @@
-interface WikipediaSearchResult {
-  query: {
-    search: Array<{
-      title: string;
-      snippet: string;
-      pageid: number;
-    }>;
-  };
-}
-
-interface WikipediaPageResult {
-  query: {
-    pages: {
-      [key: string]: {
-        title: string;
-        extract: string;
-      };
-    };
-  };
-}
-
 export async function fetchWikipediaSummary(query: string): Promise<string | null> {
   try {
     // First, search for relevant pages

@@ -1,10 +1,18 @@
-# CuraCall - AI Voice & Chat Assistant
+# CuraCall – AI Voice & Chat Assistant (EN/ES)
 
-## Overview
+This project is now bilingual, with English as the primary language and Spanish as the secondary language. All UI surfaces and system messages default to English, and you can switch to Spanish from the UI language toggle.
 
-CuraCall is a modern AI-powered voice and chat assistant application built with a full-stack TypeScript architecture. The application provides two interaction modes: Voice mode for hands-free conversations and Chat mode for text-based interactions. It leverages free, browser-based AI using WebLLM technology that runs entirely client-side via WebGPU, with Wikipedia fallback for basic mode when WebGPU is unavailable.
+## Overview (English)
 
-The application features a modern, glassmorphic dark UI with multiple theme options, conversation history management, and comprehensive settings customization. It's designed as a Progressive Web Application with responsive design and accessibility in mind.
+CuraCall is a modern AI-powered voice and chat assistant built with a full-stack TypeScript architecture. It offers Voice mode for hands-free conversations and Chat mode for text-based interactions. The current integration supports a local LLM via Ollama (llama3.1:8b), with streaming responses from the server.
+
+The app features a glassmorphic dark UI with multiple themes, conversation history, and customizable settings. It’s responsive and accessible.
+
+## Descripción (Español)
+
+CuraCall es un asistente moderno de voz y chat con arquitectura TypeScript full‑stack. Ofrece modo Voz para conversaciones manos libres y modo Chat para texto. La integración actual usa un LLM local con Ollama (llama3.1:8b) y transmisión de respuestas desde el servidor.
+
+La interfaz tiene estilo “glassmorphism” oscuro con varios temas, historial de conversaciones y ajustes personalizables. Es responsiva y accesible.
 
 ## User Preferences
 
@@ -22,7 +30,7 @@ The application uses a modern React-based frontend built with Vite and TypeScrip
 - **Animations**: Framer Motion for smooth transitions and micro-interactions
 - **Styling**: OKLCH color system with multiple theme variants (Dark Ocean, Ocean Breeze, Seagrass, Sunset, Midnight)
 
-### Backend Architecture
+### Backend Architecture / Arquitectura Backend
 The backend follows a minimal Express.js pattern:
 
 - **Server**: Express.js with TypeScript for API endpoints
@@ -30,7 +38,7 @@ The backend follows a minimal Express.js pattern:
 - **Storage Interface**: Abstracted storage layer supporting both in-memory and database implementations
 - **Database Ready**: Configured for PostgreSQL with Drizzle ORM but currently using in-memory storage
 
-### AI Integration Pattern
+### AI Integration Pattern / Integración de IA
 The application implements a sophisticated AI system with fallback capabilities:
 
 - **Primary AI**: WebLLM (@mlc-ai/web-llm) running entirely in browser via WebGPU
@@ -38,14 +46,14 @@ The application implements a sophisticated AI system with fallback capabilities:
 - **Fallback Mode**: Wikipedia REST API integration when WebGPU is unavailable
 - **Voice Integration**: Web Speech API for both Speech-to-Text and Text-to-Speech
 
-### Data Architecture
+### Data Architecture / Arquitectura de Datos
 Client-side data persistence using browser localStorage:
 
 - **Conversations**: Full conversation history with archiving and deletion capabilities
 - **Settings**: User preferences including themes, voice settings, and AI model preferences
 - **State Management**: Reactive hooks pattern with automatic persistence
 
-### Component Architecture
+### Component Architecture / Arquitectura de Componentes
 Modular component structure following atomic design principles:
 
 - **Pages**: Route-level components (Dashboard, Chat, History, Settings)
@@ -54,7 +62,7 @@ Modular component structure following atomic design principles:
 - **UI Components**: shadcn/ui based design system components
 - **Custom Hooks**: Specialized hooks for WebLLM, Speech API, and state management
 
-## External Dependencies
+## External Dependencies / Dependencias Externas
 
 ### Core Framework Dependencies
 - **@vitejs/plugin-react**: React integration for Vite build system
@@ -83,9 +91,15 @@ Modular component structure following atomic design principles:
 - **WebGPU**: Browser API for GPU-accelerated AI model inference
 - **Web Speech API**: Browser APIs for voice input/output functionality
 
-### Database Integration
+### Database Integration / Integración de Base de Datos
 - **PostgreSQL**: Primary database (configured via DATABASE_URL environment variable)
 - **@neondatabase/serverless**: Serverless PostgreSQL driver for production deployment
 - **connect-pg-simple**: PostgreSQL session store for Express sessions
 
-The architecture prioritizes client-side processing and privacy, with most AI inference happening locally in the browser. The backend serves primarily as a data persistence layer and could be enhanced with additional API endpoints as needed.
+The architecture prioritizes privacy and local processing. With Ollama streaming enabled, inference happens on your machine. The backend persists data and exposes the chat streaming endpoint.
+
+## Internationalization (EN default)
+
+- Default interface language: English. Secondary: Spanish.
+- Language toggle in the header (EN/ES) stores preference in localStorage.
+- STT/TTS adjusts to the chosen language when possible (STT: `en-US` or `es-ES`).

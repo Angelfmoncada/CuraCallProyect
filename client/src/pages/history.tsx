@@ -1,12 +1,47 @@
 import { motion } from "framer-motion";
-import { Archive, Trash2 } from "lucide-react";
+import { Archive, Trash2, MessageCircle } from "lucide-react";
 import { useHistory } from "@/store/history";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { UniversalChatInterface } from "@/components/UniversalChatInterface";
+import { useFloatingChatWidget } from "@/components/FloatingChatWidget";
+import { useVoiceShortcuts } from "@/hooks/useVoiceShortcuts";
 
 export default function History() {
   const { conversations, deleteConversation, archiveConversation, setCurrentConversation } = useHistory();
   const [, setLocation] = useLocation();
+  
+  // Chat flotante
+  const {
+    isVisible: isChatVisible,
+    mode: chatMode,
+    showChat,
+    hideChat,
+    toggleChat,
+    switchMode,
+    setMode,
+    FloatingChatWidget
+  } = useFloatingChatWidget();
+  
+  // Atajos de teclado
+  useVoiceShortcuts({
+    onVoiceActivate: () => {
+      setMode('voice');
+      showChat();
+    },
+    onChatActivate: () => {
+      setMode('chat');
+      showChat();
+    },
+    onToggleMode: () => {
+      if (isChatVisible) {
+        switchMode(chatMode === 'voice' ? 'chat' : 'voice');
+      } else {
+        showChat();
+      }
+    },
+    onToggleWidget: toggleChat
+  });
 
   const handleConversationClick = (conversationId: string) => {
     setCurrentConversation(conversationId);
@@ -68,14 +103,14 @@ export default function History() {
                 <div className="flex-1">
                   <h3 className="font-medium mb-2">{conversation.title}</h3>
                   <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                    {conversation.messages.length > 0 
-                      ? (conversation.messages[0] as any).content.slice(0, 100) + '...'
+                    {(conversation.messages as any[]).length > 0 
+                      ? ((conversation.messages as any[])[0] as any).content.slice(0, 100) + '...'
                       : 'Empty conversation'
                     }
                   </p>
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span>{formatTimeAgo(conversation.createdAt)}</span>
-                    <span>{conversation.messages.length} messages</span>
+                    <span>{formatTimeAgo(new Date(conversation.createdAt).getTime())}</span>
+                    <span>{(conversation.messages as any[]).length} messages</span>
                     {conversation.archived && (
                       <span className="px-2 py-1 bg-muted rounded-full">Archived</span>
                     )}
@@ -106,6 +141,26 @@ export default function History() {
           ))}
         </div>
       )}
+      
+      {/* Botón flotante para activar chat */}
+      <motion.div
+        className="fixed bottom-6 right-6 z-40"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Button
+          size="icon"
+          onClick={toggleChat}
+          className="h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300"
+          title="Abrir CuraCall Assistant (Ctrl+Shift+A)"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </Button>
+      </motion.div>
+      
+      {/* Widget flotante de chat */}
+      <FloatingChatWidget defaultMode="voice" />
     </div>
   );
 }

@@ -3,16 +3,20 @@ import { motion } from "framer-motion";
 import { Archive, Trash2 } from "lucide-react";
 import { MessageList } from "@/components/chat/MessageList";
 import { InputBar } from "@/components/chat/InputBar";
-import { useWebLLM } from "@/hooks/useWebLLM";
+import { streamChat, type HistoryMsg } from "@/lib/ai/streamChat";
 import { useHistory } from "@/store/history";
+import { useSpeech } from "@/hooks/useSpeech";
+import { useSettings } from "@/store/settings";
 import { Button } from "@/components/ui/button";
 import type { Message } from "@shared/schema";
 
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const { chat, ready } = useWebLLM();
+  const currentLanguage: 'es' = 'es';
   const { addConversation, currentConversation, setCurrentConversation } = useHistory();
+  const { speaking } = useSpeech();
+  const { settings } = useSettings();
 
   useEffect(() => {
     // Check for pending message from dashboard
@@ -31,7 +35,7 @@ export default function Chat() {
   const handleSendMessage = async (content: string) => {
     const userMessage: Message = {
       id: crypto.randomUUID(),
-      role: "user",
+      role: "user" as const,
       content,
       timestamp: Date.now(),
     };
@@ -41,34 +45,47 @@ export default function Chat() {
     setIsTyping(true);
 
     try {
-      const response = await chat(newMessages.map(m => ({ role: m.role, content: m.content })));
-      
-      const assistantMessage: Message = {
+      // Placeholder para el asistente
+      const placeholder: Message = {
         id: crypto.randomUUID(),
-        role: "assistant",
-        content: response,
+        role: "assistant" as const,
+        content: "",
         timestamp: Date.now(),
       };
+      setMessages([...newMessages, placeholder]);
 
-      const finalMessages = [...newMessages, assistantMessage];
-      setMessages(finalMessages);
+      // Historial para el servicio (sin el placeholder)
+      const historyMsgs: HistoryMsg[] = newMessages.map(m => ({ role: m.role, content: m.content })) as HistoryMsg[];
 
-      // Save to history
-      if (finalMessages.length === 2) {
-        // New conversation
-        const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
-        const conversationId = addConversation(title, finalMessages);
-        setCurrentConversation(conversationId);
-      } else {
-        // Update existing conversation
-        if (currentConversation) {
-          // This would update the conversation in storage
-          console.log("Update conversation:", currentConversation.id, finalMessages);
+      let full = "";
+      const ctl = streamChat({
+        prompt: content,
+        history: historyMsgs,
+        model: settings.aiModel,
+        onToken: (delta) => {
+          full += delta;
+          setMessages(prev => prev.map(m => m.id === placeholder.id ? { ...m, content: full } : m));
+        },
+        onDone: (final) => {
+          setMessages(prev => prev.map(m => m.id === placeholder.id ? { ...m, content: final } : m));
+
+          const finalMessages = [...newMessages, { ...placeholder, content: final }];
+          if (finalMessages.length === 2) {
+            const title = content.slice(0, 50) + (content.length > 50 ? '...' : '');
+            const conversationId = addConversation(title, finalMessages);
+            setCurrentConversation(conversationId);
+          } else if (currentConversation) {
+            // Aquí podrías persistir actualización si tu store lo requiere
+            // console.log("Update conversation:", currentConversation.id, finalMessages);
+          }
+        },
+        onError: (err) => {
+          console.error('Chat stream error:', err);
         }
-      }
+      });
+      await ctl.start();
     } catch (error) {
       console.error("Chat error:", error);
-      // Handle error state
     } finally {
       setIsTyping(false);
     }
@@ -141,8 +158,25 @@ export default function Chat() {
           isTyping={isTyping}
           onArchiveMessage={handleArchiveMessage}
           onDeleteMessage={handleDeleteMessage}
+          currentLanguage={currentLanguage}
         />
       </motion.div>
+
+      {/* Indicador de síntesis de voz */}
+      {speaking && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          className="fixed bottom-20 right-4 bg-primary/90 text-primary-foreground px-3 py-2 rounded-full shadow-lg flex items-center gap-2"
+          data-testid="speaking-indicator"
+        >
+          <div className="w-2 h-2 bg-current rounded-full animate-pulse" />
+          <span className="text-sm font-medium">
+            {currentLanguage === 'es' ? 'Reproduciendo...' : 'Speaking...'}
+          </span>
+        </motion.div>
+      )}
 
       {/* Input */}
       <motion.div
@@ -152,10 +186,18 @@ export default function Chat() {
       >
         <InputBar
           onSendMessage={handleSendMessage}
-          disabled={!ready || isTyping}
-          placeholder="Type your message..."
+          disabled={isTyping}
+          placeholder={currentLanguage === 'es' ? "Escribe tu mensaje..." : "Type your message..."}
+          currentLanguage={currentLanguage}
         />
       </motion.div>
     </div>
   );
 }
+
+
+
+
+
+
+

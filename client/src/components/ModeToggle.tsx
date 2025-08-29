@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
 import { Mic, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

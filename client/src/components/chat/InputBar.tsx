@@ -1,6 +1,6 @@
 import { useState, KeyboardEvent } from "react";
 import { motion } from "framer-motion";
-import { Send, Mic } from "lucide-react";
+import { Send, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSpeech } from "@/hooks/useSpeech";
@@ -10,20 +10,19 @@ interface InputBarProps {
   disabled?: boolean;
   placeholder?: string;
   suggestions?: string[];
+  currentLanguage?: 'en' | 'es';
 }
 
 export function InputBar({ 
   onSendMessage, 
   disabled = false, 
   placeholder = "Type your message...",
-  suggestions = [
-    "Explain this concept",
-    "Give me an example", 
-    "What's the next step?"
-  ]
+  suggestions = [],
+  currentLanguage = 'en'
 }: InputBarProps) {
   const [message, setMessage] = useState("");
-  const { startListening, isListening } = useSpeech();
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const { listening, start, stop } = useSpeech();
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
@@ -40,11 +39,26 @@ export function InputBar({
   };
 
   const handleVoiceInput = async () => {
-    if (isListening) return;
+    if (listening) {
+      stop();
+      return;
+    }
     
-    const voiceText = await startListening();
-    if (voiceText) {
-      setMessage(voiceText);
+    try {
+      // Verificar permisos de micrófono
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      setVoiceError(null);
+      
+      const speechLang = currentLanguage === 'es' ? 'es-ES' : 'en-US';
+      start((text: string) => {
+        setMessage(text);
+      }, speechLang);
+    } catch (error) {
+      console.error('Voice input error:', error);
+      const errorMsg = currentLanguage === 'es' 
+        ? 'No se pudo acceder al micrófono. Verifica los permisos.'
+        : 'Could not access microphone. Check permissions.';
+      setVoiceError(errorMsg);
     }
   };
 
@@ -65,30 +79,53 @@ export function InputBar({
           data-testid="input-message"
         />
         
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={handleVoiceInput}
-          disabled={disabled}
-          className={`p-2 hover:bg-white/10 rounded-lg transition-colors ${
-            isListening ? "bg-primary/20" : ""
-          }`}
-          data-testid="button-voice-input"
-        >
-          <Mic className={`w-5 h-5 ${isListening ? "text-primary" : ""}`} />
-        </Button>
+        <div className="relative">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleVoiceInput}
+            disabled={disabled}
+            className={`p-2 hover:bg-white/10 rounded-lg transition-colors ${
+              listening ? "bg-red-500/20 text-red-500" : ""
+            }`}
+            data-testid="voice-input-button"
+            aria-label={listening ? "Detener grabación" : "Iniciar grabación de voz"}
+          >
+            {listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+          </Button>
+          
+          {/* Indicador de grabación */}
+          {listening && (
+            <div 
+              className="absolute -top-2 -right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"
+              data-testid="recording-indicator"
+            />
+          )}
+        </div>
         
         <Button
           size="icon"
           onClick={handleSend}
           disabled={disabled || !message.trim()}
           className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50"
-          data-testid="button-send"
+          data-testid="send-button"
         >
           <Send className="w-5 h-5" />
         </Button>
       </div>
       
+      {/* Error de voz */}
+      {voiceError && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg"
+          data-testid="voice-error"
+        >
+          <p className="text-sm text-red-500">{voiceError}</p>
+        </motion.div>
+      )}
+
       {/* Quick suggestions */}
       {suggestions.length > 0 && (
         <div className="flex gap-2 flex-wrap">

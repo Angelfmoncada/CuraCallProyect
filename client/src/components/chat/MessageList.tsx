@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Bot, Archive, Trash2 } from "lucide-react";
+import { User, Bot, Archive, Trash2, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSpeech } from "@/hooks/useSpeech";
 import type { Message } from "@shared/schema";
 
 interface MessageListProps {
@@ -9,16 +10,24 @@ interface MessageListProps {
   isTyping?: boolean;
   onArchiveMessage?: (messageId: string) => void;
   onDeleteMessage?: (messageId: string) => void;
+  currentLanguage?: 'en' | 'es';
 }
 
 export function MessageList({ 
   messages, 
   isTyping = false,
   onArchiveMessage,
-  onDeleteMessage 
+  onDeleteMessage,
+  currentLanguage = 'es'
 }: MessageListProps) {
+  const { speaking, speak } = useSpeech();
+
+  const handleTTS = (text: string) => {
+    const speechLang = currentLanguage === 'es' ? 'es-ES' : 'en-US';
+    speak(text, speechLang);
+  };
   return (
-    <ScrollArea className="flex-1 pr-2" data-testid="message-list">
+    <ScrollArea className="flex-1 pr-2" data-testid="messages-container">
       <div className="space-y-4">
         <AnimatePresence>
           {messages.map((message, index) => (
@@ -30,7 +39,7 @@ export function MessageList({
               transition={{ delay: index * 0.1 }}
               className={`flex gap-3 group ${
                 message.role === "assistant" ? "justify-end" : ""
-              }`}
+              } message-${message.role}`}
               data-testid={`message-${message.role}-${message.id}`}
             >
               {message.role === "user" && (
@@ -46,6 +55,18 @@ export function MessageList({
                 
                 {/* Message actions */}
                 <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                  {message.role === "assistant" && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="w-6 h-6 glass"
+                      onClick={() => handleTTS(message.content)}
+                      data-testid="tts-button"
+                      aria-label="Reproducir con síntesis de voz"
+                    >
+                      <Volume2 className="w-3 h-3" />
+                    </Button>
+                  )}
                   {onArchiveMessage && (
                     <Button
                       size="icon"

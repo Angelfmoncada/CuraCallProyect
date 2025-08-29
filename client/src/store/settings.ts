@@ -8,7 +8,8 @@ const defaultSettings: Omit<Settings, 'id'> = {
   voiceSpeed: '1',
   autoPlay: true,
   saveConversations: true,
-  aiModel: 'Llama-3-8B-Instruct',
+  // Usar Llama 3.1 8B local por defecto
+  aiModel: 'llama3.1:8b',
   responseLength: 'balanced',
 };
 
