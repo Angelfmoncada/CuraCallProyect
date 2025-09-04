@@ -1,0 +1,16 @@
+[project]
+name = "gemma3-voice-chatbot-api"
+version = "1.0.0"
+description = "FastAPI backend streaming Ollama Gemma3 responses"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.111",
+  "uvicorn[standard]>=0.29",
+  "pydantic>=2.7",
+  "ollama>=0.3.0",
+]
+
+[tool.uvicorn]
+factory = false
+host = "127.0.0.1"
+port = 8000
