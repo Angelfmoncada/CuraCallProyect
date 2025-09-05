@@ -128,3 +128,5 @@ test_tts.wav
 # Package lock files (optional, depending on preference)
 # package-lock.json
 # yarn.lock
+# Local Netlify folder
+.netlify

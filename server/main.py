@@ -16,7 +16,20 @@ import json
 # Import TTS functionality
 from tts_coqui import create_tts_engine
 
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
+def _normalize_base(url: str) -> str:
+    """Normalize Ollama base URL to avoid connection issues."""
+    if not url:
+        return "http://127.0.0.1:11434"
+    u = url.strip()
+    # Convert 0.0.0.0 to 127.0.0.1 to avoid connection adapter errors
+    if u.startswith("0.0.0.0"):
+        u = u.replace("0.0.0.0", "127.0.0.1", 1)
+    # Ensure protocol is present
+    if not u.startswith("http://") and not u.startswith("https://"):
+        u = "http://" + u
+    return u.rstrip("/")
+
+OLLAMA_HOST = _normalize_base(os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434"))
 MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
 
 app = FastAPI(title="Gemma3 Voice Chatbot API", version="1.0.0")

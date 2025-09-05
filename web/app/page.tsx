@@ -21,7 +21,7 @@ const VoiceOrb = dynamic(() => import('./components/VoiceOrb'), {
 });
 import { detectLang2 } from './lib/lang';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000';
 
 function PageContent() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -36,6 +36,7 @@ function PageContent() {
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [showVoiceControls, setShowVoiceControls] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // TTS Hook integration
@@ -53,6 +54,15 @@ function PageContent() {
   }, [voiceMode]);
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' }); }, [messages, streaming]);
+
+  // Check if we're in demo mode
+  useEffect(() => {
+    const checkDemoMode = () => {
+      const isBackendAvailable = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1') || process.env.NEXT_PUBLIC_API_BASE_URL;
+      setIsDemoMode(!isBackendAvailable || API_BASE.includes('localhost'));
+    };
+    checkDemoMode();
+  }, []);
 
   const speak = async (text: string) => {
     if (!voice || !text?.trim()) return;
@@ -201,6 +211,44 @@ function PageContent() {
     setStreaming(true);
 
     try {
+      // Check if backend is available, if not use demo mode
+      const isBackendAvailable = API_BASE.includes('localhost') || API_BASE.includes('127.0.0.1') || process.env.NEXT_PUBLIC_API_BASE_URL;
+      
+      if (!isBackendAvailable || API_BASE.includes('localhost')) {
+        // Demo mode - simulate AI response
+        const demoResponses = [
+          "¡Hola! Soy CuraCall AI, tu asistente de salud virtual. Actualmente estoy en modo demostración. Para una experiencia completa, necesitarías conectar el backend.",
+          "En modo completo, puedo ayudarte con consultas médicas, análisis de síntomas y recomendaciones de salud personalizadas.",
+          "Esta es una respuesta de demostración. El sistema completo incluye procesamiento de voz, análisis de IA y síntesis de voz.",
+          "CuraCall AI está diseñado para proporcionar asistencia médica inteligente. Esta demo muestra la interfaz de usuario."
+        ];
+        
+        const demoResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
+        
+        // Simulate streaming response
+        let charIndex = 0;
+        const streamDemo = () => {
+          if (charIndex < demoResponse.length) {
+            setMessages(curr => {
+              const copy = [...curr];
+              copy[copy.length - 1] = {
+                id: assistantMessageId,
+                role: 'assistant' as const,
+                content: demoResponse.substring(0, charIndex + 1)
+              };
+              return copy;
+            });
+            charIndex++;
+            setTimeout(streamDemo, 50); // Simulate typing speed
+          } else {
+            setStreaming(false);
+          }
+        };
+        
+        setTimeout(streamDemo, 500); // Initial delay
+        return;
+      }
+      
       const res = await fetch(`${API_BASE}/api/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -310,6 +358,24 @@ function PageContent() {
             </label>
           </div>
         </header>
+
+        {/* Demo Mode Banner */}
+        {isDemoMode && (
+          <div className="mb-6 p-4 rounded-lg bg-amber-500/20 border border-amber-500/30 backdrop-blur-sm animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center text-white text-sm font-bold">
+                ⚠️
+              </div>
+              <div>
+                <h3 className="text-amber-200 font-medium">Modo Demostración</h3>
+                <p className="text-amber-100/80 text-sm">
+                  La aplicación está funcionando en modo demo. Para la experiencia completa con IA y síntesis de voz, 
+                  necesitas configurar el backend en producción.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <AnimatePresence>
           {showVoiceControls && (
