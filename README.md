@@ -1,220 +1,278 @@
-# Gemma3 Voice Chat 🎤🤖
+# CuraCall - AI Voice Chat Assistant 🎤🤖
 
-Un chatbot completo con capacidades de voz que utiliza **Ollama (Gemma3:4B)**, **FastAPI**, **Next.js** y **Web Speech API**. Permite conversaciones por voz y texto con respuestas en tiempo real mediante streaming.
+A complete voice-enabled chatbot that integrates **OpenRouter streaming**, **FastAPI**, **Next.js**, and **Web Speech API**. Supports both voice and text conversations with real-time streaming responses and demo mode functionality.
 
-## 🚀 Características
+## 🚀 Features
 
-- 🎙️ **Reconocimiento de voz** (Speech-to-Text) usando Web Speech API
-- 🔊 **Síntesis de voz** (Text-to-Speech) para respuestas del asistente
-- ⚡ **Streaming en tiempo real** de respuestas del modelo
-- 🎨 **Interfaz moderna** con TailwindCSS y Framer Motion
-- 🤖 **Modelo Gemma3:4B** ejecutándose localmente con Ollama
-- 📱 **Diseño responsive** que funciona en desktop y móvil
+- 🎙️ **Speech Recognition** (Speech-to-Text) using Web Speech API
+- 🔊 **Voice Synthesis** (Text-to-Speech) for assistant responses
+- ⚡ **Real-time streaming** responses from AI models
+- 🎨 **Modern interface** with TailwindCSS and Framer Motion
+- 🤖 **Multiple AI models** support via OpenRouter and local Ollama
+- 📱 **Responsive design** that works on desktop and mobile
+- 🎭 **Demo mode** for testing without API keys
+- 🌐 **Production ready** with Netlify deployment configuration
 
-## 📋 Requisitos
+## 📋 Requirements
 
-- **Node.js** 18+ 
+- **Node.js** 18+
 - **Python** 3.8+
-- **Ollama** instalado y ejecutándose
+- **OpenRouter API Key** (for production) or **Ollama** (for local development)
 
-## 🛠️ Instalación
+## 🛠️ Installation
 
-### 1. Clonar el repositorio
-
-```bash
-git clone <repository-url>
-cd curacall11
-```
-
-### 2. Configurar Ollama
+### 1. Clone the repository
 
 ```bash
-# Instalar Ollama (si no está instalado)
-curl -fsSL https://ollama.ai/install.sh | sh
-
-# Iniciar el servicio
-ollama serve
-
-# Descargar el modelo Gemma3:4B
-ollama pull gemma3:4b
+git clone https://github.com/Angelfmoncada/CuracallProyect.git
+cd CuracallProyect
 ```
 
-### 3. Configurar el Backend
+### 2. Setup Backend (FastAPI)
 
 ```bash
 cd server
 
-# Instalar dependencias
+# Install dependencies
 pip install -U pip
 pip install -e . || pip install fastapi uvicorn[standard] pydantic ollama
 
-# Copiar variables de entorno (opcional)
+# Copy environment variables
 cp .env.example .env
 
-# Iniciar el servidor
-uvicorn main:app --reload --port 8000
+# Start the server
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-El backend estará disponible en `http://localhost:8000`
+The backend will be available at `http://localhost:8000`
 
-### 4. Configurar el Frontend
+### 3. Setup Frontend (Next.js)
 
 ```bash
 cd ../web
 
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Iniciar el servidor de desarrollo
+# Copy environment variables
+cp .env.example .env.local
+
+# Start development server
 npm run dev
 ```
 
-El frontend estará disponible en `http://localhost:3000`
+The frontend will be available at `http://localhost:3000`
 
-## 🎯 Uso
+## 🔧 Configuration
 
-1. **Abrir la aplicación** en `http://localhost:3000`
-2. **Escribir un mensaje** en el campo de texto o **hacer clic en el micrófono** para usar reconocimiento de voz
-3. **Enviar el mensaje** y ver la respuesta en tiempo real
-4. **Escuchar la respuesta** (se reproduce automáticamente si el navegador lo permite)
+### Backend Environment Variables (`server/.env`)
 
-### Navegadores Compatibles
+```env
+# For OpenRouter (Production)
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+MODEL=deepseek/deepseek-chat-v3-0324:free
 
-- **Chrome/Edge**: Soporte completo para voz
-- **Firefox**: Funcionalidad limitada de voz
-- **Safari**: Soporte parcial
+# For Ollama (Local Development)
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=gemma3:4b
 
-> **Nota**: Si el reconocimiento de voz no funciona, puedes usar el teclado normalmente.
+# Server Configuration
+PORT=8000
+FRONTEND_ORIGIN=http://localhost:3000
+```
 
-## 🏗️ Estructura del Proyecto
+### Frontend Environment Variables (`web/.env.local`)
+
+```env
+# API Configuration
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+
+# Demo Mode (set to 'true' to enable demo without API keys)
+NEXT_PUBLIC_DEMO_MODE=false
+
+# TTS Configuration
+NEXT_PUBLIC_TTS_ENABLED=true
+NEXT_PUBLIC_TTS_PROVIDER=coqui
+NEXT_PUBLIC_COQUI_TTS_URL=http://localhost:8000
+```
+
+## 🎯 Usage
+
+### Demo Mode
+
+1. Set `NEXT_PUBLIC_DEMO_MODE=true` in your environment
+2. Open the application at `http://localhost:3000`
+3. Experience the interface with simulated AI responses
+4. Perfect for testing UI/UX without API costs
+
+### Production Mode
+
+1. **Configure API keys** in your environment files
+2. **Open the application** at `http://localhost:3000`
+3. **Type a message** or **click the microphone** for voice recognition
+4. **Send the message** and see real-time streaming responses
+5. **Listen to responses** (automatically played if browser allows)
+
+### Browser Compatibility
+
+- **Chrome/Edge**: Full voice support
+- **Firefox**: Limited voice functionality
+- **Safari**: Partial support
+
+> **Note**: If voice recognition doesn't work, you can use the keyboard normally.
+
+## 🏗️ Project Structure
 
 ```
-curacall11/
-├── server/                 # Backend FastAPI
-│   ├── main.py            # Aplicación principal
-│   ├── pyproject.toml     # Dependencias Python
-│   ├── .env.example       # Variables de entorno
-│   └── README.md          # Documentación del backend
-├── web/                   # Frontend Next.js
-│   ├── app/               # App Router de Next.js
-│   │   ├── components/    # Componentes React
-│   │   ├── layout.tsx     # Layout principal
-│   │   └── page.tsx       # Página principal
-│   ├── styles/            # Estilos globales
-│   ├── package.json       # Dependencias Node.js
-│   └── *.config.*         # Archivos de configuración
-└── README.md              # Este archivo
+CuracallProyect/
+├── server/                 # FastAPI Backend
+│   ├── main.py            # Main application
+│   ├── tts_coqui.py       # TTS service
+│   ├── pyproject.toml     # Python dependencies
+│   ├── .env.example       # Environment template
+│   └── README.md          # Backend documentation
+├── web/                   # Next.js Frontend
+│   ├── app/               # Next.js App Router
+│   │   ├── components/    # React components
+│   │   ├── lib/           # Utilities and services
+│   │   ├── layout.tsx     # Main layout
+│   │   └── page.tsx       # Main page
+│   ├── components/        # Shared components
+│   │   └── ui/           # UI components (shadcn/ui)
+│   ├── styles/           # Global styles
+│   ├── netlify.toml      # Netlify deployment config
+│   ├── .env.example      # Environment template
+│   ├── .env.production   # Production environment
+│   └── package.json      # Node.js dependencies
+└── README.md             # This file
 ```
 
 ## 🔧 API Endpoints
 
-### Backend (Puerto 8000)
+### Backend (Port 8000)
 
-- `GET /api/health` - Estado del servidor
-- `GET /api/models` - Modelos disponibles en Ollama
-- `POST /api/chat` - Chat sin streaming
-- `POST /api/chat/stream` - Chat con streaming (usado por el frontend)
+- `GET /api/health` - Server health check
+- `GET /api/models` - Available models in Ollama
+- `POST /api/chat` - Chat without streaming
+- `POST /api/chat/stream` - Chat with streaming (used by frontend)
+- `POST /api/tts/coqui` - Text-to-Speech synthesis
 
-### Ejemplo de uso de la API
+### API Usage Examples
 
 ```bash
-# Probar el endpoint de salud
+# Test health endpoint
 curl http://localhost:8000/api/health
 
-# Enviar un mensaje
+# Send a message
 curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
-  -d '{"message": "Hola, ¿cómo estás?", "model": "gemma3:4b"}'
+  -d '{"message": "Hello, how are you?", "model": "gemma3:4b"}'
+
+# Test streaming
+curl -N -X POST http://localhost:8000/api/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Tell me a story"}'
 ```
 
-## 🐳 Docker (Opcional)
+## 🚀 Deployment
 
-### Backend
+### Netlify (Frontend)
 
+The project includes Netlify configuration:
+
+1. **Connect your repository** to Netlify
+2. **Set build command**: `npm run build`
+3. **Set publish directory**: `.next`
+4. **Configure environment variables** in Netlify dashboard
+5. **Deploy**
+
+### Docker (Optional)
+
+#### Backend
 ```bash
 cd server
-docker build -t gemma3-chat-backend .
-docker run -p 8000:8000 gemma3-chat-backend
+docker build -t curacall-backend .
+docker run -p 8000:8000 curacall-backend
 ```
 
-### Frontend
-
+#### Frontend
 ```bash
 cd web
-docker build -t gemma3-chat-frontend .
-docker run -p 3000:3000 gemma3-chat-frontend
+docker build -t curacall-frontend .
+docker run -p 3000:3000 curacall-frontend
 ```
 
-## 🛠️ Desarrollo
+## 🛠️ Development
 
-### Comandos útiles
+### Useful Commands
 
 ```bash
 # Backend
 cd server
-uvicorn main:app --reload --port 8000  # Desarrollo
-uvicorn main:app --host 127.0.0.1 --port 8000  # Producción
+python -m uvicorn main:app --reload --port 8000  # Development
+python -m uvicorn main:app --host 0.0.0.0 --port 8000  # Production
 
 # Frontend
 cd web
-npm run dev        # Desarrollo
-npm run build      # Construir para producción
-npm run start      # Ejecutar versión de producción
-npm run lint       # Linter
+npm run dev        # Development
+npm run build      # Build for production
+npm run start      # Run production build
+npm run lint       # Linting
 ```
 
-### Variables de Entorno
+## 🔍 Troubleshooting
 
-**Backend** (`server/.env`):
-```env
-OLLAMA_HOST=http://localhost:11434
-OLLAMA_MODEL=gemma3:4b
-```
+### Ollama not responding
+- Verify Ollama is running: `ollama serve`
+- Check model is downloaded: `ollama list`
+- Test the model: `ollama run gemma3:4b "Hello"`
 
-**Frontend** (opcional):
-```env
-NEXT_PUBLIC_API_BASE=http://localhost:8000
-```
+### CORS errors
+- Backend includes CORS configuration for development
+- For production, adjust allowed origins in `server/main.py`
 
-## 🔍 Solución de Problemas
+### Voice recognition not working
+- Use Chrome or Edge for better compatibility
+- Check microphone permissions in browser
+- Use HTTPS in production (required by Web Speech API)
 
-### Ollama no responde
-- Verificar que Ollama esté ejecutándose: `ollama serve`
-- Verificar que el modelo esté descargado: `ollama list`
-- Probar el modelo: `ollama run gemma3:4b "Hola"`
-
-### Error de CORS
-- El backend ya incluye configuración CORS para desarrollo
-- Para producción, ajustar los orígenes permitidos en `server/main.py`
-
-### Reconocimiento de voz no funciona
-- Usar Chrome o Edge para mejor compatibilidad
-- Verificar permisos del micrófono en el navegador
-- Usar HTTPS en producción (requerido por Web Speech API)
-
-### Puerto ocupado
+### Port conflicts
 ```bash
-# Cambiar puerto del backend
-uvicorn main:app --port 8001
+# Change backend port
+python -m uvicorn main:app --port 8001
 
-# Cambiar puerto del frontend
+# Change frontend port
 npm run dev -- --port 3001
 ```
 
-## 📝 Licencia
+### OpenRouter API Issues
+- **401/403**: Invalid API key or insufficient permissions
+- **429**: Rate limit exceeded (automatic backoff implemented)
+- **5xx**: OpenRouter server error
+- **Timeout**: No response within 15-20 seconds
 
-Este proyecto está bajo la licencia MIT.
+## 🔒 Security
 
-## 🤝 Contribuciones
+✅ API keys only in backend environment
+✅ CORS restricted to frontend origin
+✅ Input validation and sanitization
+✅ Secure error handling
+✅ No secrets exposed in client code
 
-Las contribuciones son bienvenidas. Por favor:
+## 📝 License
 
-1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abrir un Pull Request
+This project is licensed under the MIT License.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
-**¡Disfruta conversando con Gemma3! 🎉**
+**Enjoy chatting with AI! 🎉**
