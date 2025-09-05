@@ -61,8 +61,34 @@ export async function speakQueued(
   opts?: { language?: string; speakerWavB64?: string; speaker?: string; rate?: number }
 ) {
   const clean = tighten(text);
-  const parts = clean.split(/(?<=[.!?])\s+/).filter(Boolean);
-  for (const p of parts) {
-    await speakWithCoqui(p, opts);
+  
+  // Si el texto es corto, reproducirlo completo
+  if (clean.length <= 200) {
+    await speakWithCoqui(clean, opts);
+    return;
+  }
+  
+  // Para textos largos, dividir de manera más inteligente
+  const sentences = clean.split(/(?<=[.!?])\s+/).filter(Boolean);
+  
+  // Agrupar oraciones cortas para evitar fragmentación excesiva
+  const chunks: string[] = [];
+  let currentChunk = '';
+  
+  for (const sentence of sentences) {
+    if (currentChunk.length + sentence.length <= 300) {
+      currentChunk += (currentChunk ? ' ' : '') + sentence;
+    } else {
+      if (currentChunk.trim()) chunks.push(currentChunk.trim());
+      currentChunk = sentence;
+    }
+  }
+  if (currentChunk.trim()) chunks.push(currentChunk.trim());
+  
+  // Reproducir cada chunk completo
+  for (const chunk of chunks) {
+    if (chunk.trim()) {
+      await speakWithCoqui(chunk, opts);
+    }
   }
 }

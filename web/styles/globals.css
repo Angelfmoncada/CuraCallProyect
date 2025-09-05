@@ -2,14 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Utilidades/animaciones del orb */
+@layer utilities {
+  @keyframes rimPulse {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(53,210,255,0.35)); }
+    50%      { filter: drop-shadow(0 0 18px rgba(53,210,255,0.55)); }
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.6; transform: translateY(0); }
+    50%      { opacity: 1;   transform: translateY(-0.6%); }
+  }
+  @keyframes dash {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: -360; }
+  }
+
+  /* Paths de energía */
+  .dashA, .dashB, .dashC {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 140 220;
+    animation: dash calc(9s / var(--speed, 1)) linear infinite;
+  }
+  .dashB {
+    stroke-dasharray: 110 200;
+    animation-duration: calc(7.2s / var(--speed, 1));
+    animation-delay: -1.4s;
+    opacity: 0.85;
+  }
+  .dashC {
+    stroke-dasharray: 90 200;
+    animation-duration: calc(6.4s / var(--speed, 1));
+    animation-delay: -2.2s;
+    opacity: 0.7;
+  }
+
+  .animate-rimPulse { animation: rimPulse calc(6s / var(--speed, 1)) ease-in-out infinite; }
+  .animate-twinkle { animation: twinkle calc(5.5s / var(--speed, 1)) ease-in-out infinite; }
+}
+
 :root { color-scheme: dark; }
 html, body, #__next { height: 100%; }
 body { @apply bg-black text-white; }
 
 /* gradient background */
 .bg-animated {
-  background: radial-gradient(1200px 600px at 20% -10%, rgba(59,130,246,.25), transparent 60%),
-              radial-gradient(1200px 600px at 80% 110%, rgba(236,72,153,.20), transparent 60%),
-              linear-gradient(180deg, #0b0b0b, #000000);
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(147,51,234,.15), transparent 60%),
+              radial-gradient(1200px 600px at 80% 110%, rgba(59,130,246,.12), transparent 60%),
+              radial-gradient(800px 400px at 50% 50%, rgba(147,51,234,.08), transparent 50%),
+              linear-gradient(180deg, #0a0a0f, #000000);
   background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(147, 51, 234, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 51, 234, 0.5);
+}
+
+/* Smooth focus transitions */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+  accent-color: rgb(147, 51, 234);
 }
